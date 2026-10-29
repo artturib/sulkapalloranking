@@ -2,7 +2,10 @@ name: Ranking
 
 on:
   schedule:
-    - cron: "0 4 * * *"  # joka yö, ehtii mukaan edellisillan vuoro
+    # Klo 21.15 Suomen aikaa. Cron on UTC:ssä, joten molemmat ajat ovat mukana
+    # ja tarkista-job päästää läpi sen, joka osuu voimassa olevaan aikaan.
+    - cron: "15 18 * * *"  # kesäaika (UTC+3)
+    - cron: "15 19 * * *"  # talviaika (UTC+2)
   workflow_dispatch:
   repository_dispatch:
     types: [uusi-era]
@@ -17,7 +20,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  tarkista:
+    runs-on: ubuntu-latest
+    outputs:
+      aja: ${{ steps.aika.outputs.aja }}
+    steps:
+      - id: aika
+        env:
+          AJASTUS: ${{ github.event.schedule }}
+        run: |
+          siirto=$(TZ=Europe/Helsinki date +%z)
+          if [ -z "$AJASTUS" ] ||
+             { [ "$AJASTUS" = "15 18 * * *" ] && [ "$siirto" = "+0300" ]; } ||
+             { [ "$AJASTUS" = "15 19 * * *" ] && [ "$siirto" = "+0200" ]; }; then
+            echo "aja=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aja=false" >> "$GITHUB_OUTPUT"
+          fi
+
   laske:
+    needs: tarkista
+    if: needs.tarkista.outputs.aja == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
