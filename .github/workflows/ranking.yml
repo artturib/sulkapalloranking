@@ -1,0 +1,47 @@
+name: Ranking
+
+on:
+  schedule:
+    - cron: "0 4 * * *"  # joka yö, ehtii mukaan edellisillan vuoro
+  workflow_dispatch:
+  repository_dispatch:
+    types: [uusi-era]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ranking
+  cancel-in-progress: false
+
+jobs:
+  laske:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.julkaisu.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      # TTT-sovitusten välimuisti ajojen välillä
+      - uses: actions/cache@v4
+        with:
+          path: tulokset/.valimuisti.json
+          key: valimuisti-${{ github.run_id }}
+          restore-keys: valimuisti-
+
+      - run: python koodit/ranking.py
+        env:
+          DATA_URL: ${{ secrets.DATA_URL }}
+
+      - run: mkdir _site && cp tulokset/sulkapalloranking.html _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+      - id: julkaisu
+        uses: actions/deploy-pages@v4

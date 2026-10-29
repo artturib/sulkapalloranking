@@ -1,0 +1,729 @@
+<title>Setämiesten sulkapalloranking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: one reading column, sections ruled like court lines; scoreboard numerals for the headline figures. */
+:root {
+  --bg: #eef2ee;
+  --surface: #fcfcfb;
+  --ink: #0f1a14;
+  --ink-2: #4a5650;
+  --ink-3: #75817a;
+  --line: #d3dbd5;
+  --grid: #e4e9e5;
+  --accent: #2c6a4b;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcebe2;
+  --win: #2c6a4b;
+  --loss: #a8423b;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #1a1f1c; --ink: #f2f5f3; --ink-2: #bcc6c0; --ink-3: #8a958f;
+    --line: #2f3833; --grid: #252c28; --accent: #7cc59d; --accent-ink: #0d1a13; --accent-soft: #213a2d;
+    --win: #7cc59d; --loss: #ec8a82;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #1a1f1c; --ink: #f2f5f3; --ink-2: #bcc6c0; --ink-3: #8a958f;
+  --line: #2f3833; --grid: #252c28; --accent: #7cc59d; --accent-ink: #0d1a13; --accent-soft: #213a2d;
+  --win: #7cc59d; --loss: #ec8a82;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.05; text-wrap: balance; margin: 0; letter-spacing: .005em; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); text-transform: uppercase; }
+h2 { font-size: 1.75rem; text-transform: uppercase; }
+h3 { font-size: 1.2rem; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--ink-2); }
+.small { font-size: .875rem; }
+.num { font-variant-numeric: tabular-nums; }
+.gr { text-transform: none; }
+.eyebrow { font-family: var(--f-display); font-weight: 600; text-transform: uppercase; letter-spacing: .12em; font-size: .85rem; color: var(--accent); }
+
+header { display: grid; gap: 14px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 6px; }
+.stat { display: grid; }
+.stat b { font-family: var(--f-display); font-size: 2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+
+section { display: grid; gap: 16px; border-top: 2px solid var(--ink); padding-top: 18px; }
+.sec-head { display: grid; gap: 6px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+.scroll { overflow-x: auto; }
+
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; border-bottom: 1px solid var(--line); }
+td.r, th.r { text-align: right; }
+tr:last-child td { border-bottom: 0; }
+.rank { font-family: var(--f-display); font-size: 1.4rem; font-weight: 700; color: var(--ink-3); width: 2ch; }
+.who { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.pair { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.wl { color: var(--ink-2); }
+.wl b { color: var(--ink); font-weight: 600; }
+
+/* Content columns shrink to fit; empty spacer columns share the leftover width evenly. */
+#rank-table th, #rank-table td { width: 1%; }
+#rank-table .sp { width: auto; padding: 0; }
+.cic { text-align: center; }
+.ci { position: relative; width: 130px; height: 18px; margin: 0 auto; }
+.ci .axis0 { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.ci .bar { position: absolute; top: 8px; height: 2px; background: var(--ink-3); border-radius: 1px; }
+.ci .pt { position: absolute; top: 4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+
+/* Predictor */
+.machine { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: end; }
+.team { display: grid; gap: 8px; min-width: 0; }
+.team label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; }
+.vs { font-family: var(--f-display); font-size: 1.4rem; font-weight: 700; color: var(--ink-3); padding-bottom: 6px; }
+select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; width: 100%; min-width: 0; }
+select:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-radius: 6px; overflow: hidden; margin-top: 16px; }
+.board > div { background: var(--surface); padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.board .big { font-family: var(--f-display); font-size: clamp(2.4rem, 8vw, 3.6rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.board .lbl { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; }
+.board .full { grid-column: 1 / -1; }
+.meter { height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; display: flex; gap: 2px; }
+.meter i { display: block; height: 100%; }
+.board .meter { height: 12px; border-radius: 6px; margin-top: 4px; }
+.odds { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; font-size: 1.15rem; }
+.odds b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 700; margin-left: 6px; font-variant-numeric: tabular-nums; }
+.handicap { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 2.2rem; line-height: 1; padding: 4px 12px; background: var(--ink); color: var(--surface); border-radius: 4px; font-variant-numeric: tabular-nums; }
+.warn { color: var(--loss); font-weight: 600; }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: .95rem; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.chip[aria-pressed="false"] .dot { opacity: .35; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-weight: 600; font-size: .9rem; padding: 6px 14px; border: 0; background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.toolbar select { width: auto; }
+
+/* Chart */
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { fill: var(--ink-3); font-family: var(--f-body); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: .85rem; box-shadow: 0 4px 16px rgb(0 0 0 / .12); min-width: 160px; z-index: 2; }
+.tip .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .row span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 10px; }
+.panel h3 + .toolbar, .panel .toolbar + p { margin-top: 8px; }
+
+.week-h td { background: var(--bg); font-family: var(--f-display); font-weight: 600; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .04em; }
+.res { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .8rem; font-weight: 600; background: var(--grid); color: var(--ink-2); }
+.pill.hit { background: var(--accent-soft); color: var(--win); }
+.pill.miss { color: var(--loss); }
+.up { color: var(--win); } .down { color: var(--loss); }
+
+.fat-head { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; }
+.fat-head p { flex: 1 1 320px; min-width: 0; }
+.multiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.mult { display: grid; gap: 4px; min-width: 0; }
+.mult svg { display: block; width: 100%; height: auto; }
+.mult text { fill: var(--ink-3); font-family: var(--f-body); font-size: 11px; font-variant-numeric: tabular-nums; }
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+.method { display: grid; gap: 12px; }
+.method p { color: var(--ink-2); }
+.grid2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.grid2 .panel p { max-width: 80ch; }
+footer { color: var(--ink-3); font-size: .85rem; }
+
+@media (max-width: 560px) {
+  .machine { grid-template-columns: 1fr; }
+  .vs { padding: 0; text-align: center; }
+  .board { grid-template-columns: 1fr; }
+  .ci { width: 100px; }
+  th, td { padding: 7px 6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .meter i { transition: width .3s ease; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Nelinpelivuoro</div>
+    <h1>Setämiesten sulkapalloranking</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section id="ranking">
+    <div class="sec-head">
+      <h2>Ranking</h2>
+      <p class="muted small">Taito kertoo, kuinka paljon pelaaja nostaa parinsa pallonvoittoja keskivertopelaajaan verrattuna. Vain erotuksilla on merkitystä: 0 on porukan keskitaso. Jana näyttää arvion epävarmuuden: todellinen taso on noin 95 % todennäköisyydellä janan sisällä. Taito vähintään on varovainen arvio, jonka alle todellinen taso tuskin jää. Ennuste pallo ja Ennuste erä kertovat, kuinka usein pelaaja voittaisi pallon ja erän, kun hänen parinsa ja vastustajat ovat porukan keskitasoa (taito 0).</p>
+    </div>
+    <div class="panel scroll"><table id="rank-table"></table></div>
+  </section>
+
+  <section id="ennustin">
+    <div class="sec-head">
+      <h2>Ottelukone</h2>
+      <p class="muted small">Valitse kaksi paria. Kone kertoo nykyisen rankingin mukaisen todennäköisyyden voittaa yksittäinen pallo ja koko erä, sekä etumatkan, jolla erästä tulisi mahdollisimman tasainen.</p>
+    </div>
+    <div class="panel">
+      <div class="machine">
+        <div class="team"><label for="a1">Pari 1</label><select id="a1"></select><select id="a2" aria-label="Pari 1, toinen pelaaja"></select></div>
+        <div class="vs">vs</div>
+        <div class="team"><label for="b1">Pari 2</label><select id="b1"></select><select id="b2" aria-label="Pari 2, toinen pelaaja"></select></div>
+      </div>
+      <div id="board"></div>
+    </div>
+  </section>
+
+
+  <section id="kehitys">
+    <div class="sec-head">
+      <h2>Rankingin kehitys</h2>
+      <p class="muted small">Ranking sellaisena kuin se oli kunkin pelivuoron jälkeen: jokainen piste on laskettu vain siihen päivään mennessä pelatuista eristä, eikä myöhempi data muuta sitä. Käyrän liike kertoo sekä mahdollisesta taidon muutoksesta että siitä, miten arvio tarkentuu datan kertyessä. Varjostus näyttää valitun käyrän epävarmuuden (±σ).</p>
+    </div>
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Näkymä">
+        <button id="mode-p" aria-pressed="true">Pelaajat</button>
+        <button id="mode-pr" aria-pressed="false">Parit</button>
+      </div>
+      <label id="pair-pick-wrap" hidden>Kenen parit: <select id="pair-pick"></select></label>
+    </div>
+    <div class="panel">
+      <div class="legend" id="legend"></div>
+      <div class="chart" id="chart"></div>
+      <p class="muted small" id="chart-note"></p>
+    </div>
+  </section>
+
+  <section id="jaksaminen">
+    <div class="sec-head">
+      <h2>Jaksaminen</h2>
+      <p class="muted small">Kuka hiipuu illan mittaan muita enemmän, kuka vähemmän? Malli arvioi taidon lisäksi, kuinka paljon pelaajan vaikutus pallonvoittoihin muuttuu jokaista samana iltana jo pelattua erää kohden, verrattuna porukan keskiarvoon. Nolla tarkoittaa, että pelaaja jaksaa kuten muut keskimäärin. Kaikille yhteistä väsymistä ei näytetä: se kumoutuu, kun kaikki ovat pelanneet suunnilleen yhtä paljon, eikä sitä siksi voi juuri arvioida vuorottelevasta pelistä.</p>
+    </div>
+    <div class="panel">
+      <h3>Kuka väsyy, kuka lämpenee</h3>
+      <p class="muted small">Muutos pallonvoitossa jokaista jo pelattua erää kohden suhteessa muihin. Plus tarkoittaa, että pelaaja jaksaa muita paremmin, miinus, että hän hiipuu muita nopeammin. Arvio on kutistamaton: jokaisen kerroin perustuu vain hänen omaan dataansa. Jana on 95 %:n epävarmuusväli.</p>
+      <div class="chart" id="fat-forest"></div>
+    </div>
+    <div class="panel">
+      <h3>Arvion kehitys</h3>
+      <p class="muted small">Pelaajakohtainen kerroin (suhteessa muihin) sellaisena kuin se oli kunkin pelivuoron jälkeen, laskettuna vain siihen asti kertyneestä datasta. Kerroin saa muuttua viikosta toiseen, jos kunto kehittyy: muutosnopeus η valitaan datasta. Kun dataa kertyy, epävarmuus kapenee ja näkyy, asettuuko arvio nollan ylä- vai alapuolelle. Vie hiiri nimen päälle, niin näet epävarmuusvälin.</p>
+      <div class="legend" id="fat-hist-legend"></div>
+      <div class="chart" id="fat-hist"></div>
+    </div>
+    <div class="panel">
+      <h3>Pärjääminen illan kulussa</h3>
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Arvio">
+          <button id="fat-m-own" aria-pressed="true">Pelaajakohtainen</button>
+          <button id="fat-m-pool" aria-pressed="false">Kutistettu malli</button>
+        </div>
+      </div>
+      <p class="muted small">Pelaajan vaikutus pallonvoittoon (prosenttiyksikköä) illan 1., 2., 3. … erässä, verrattuna keskitasoiseen pelaajaan, joka on pelannut yhtä monta erää. Kutistettu malli vetää pelaajien erot kohti nollaa niin paljon kuin data edellyttää. <span id="fat-tau-note"></span></p>
+      <div class="legend" id="fat-legend"></div>
+      <div class="chart" id="fat-chart"></div>
+    </div>
+    <div class="panel">
+      <h3>Havainnot erä erältä</h3>
+      <p class="muted small">Jokainen piste on yksi erä: parin toteutunut pallo-% miinus TrueSkillin ennuste. Pisteet yläpuolella tarkoittavat odotettua parempaa erää. Mallista riippumaton tarkistus, mutta kohinaa on paljon: yksi erä on vain noin 35 palloa.</p>
+      <div class="multiples" id="fat-multiples"></div>
+    </div>
+  </section>
+
+  <section id="parit">
+    <div class="sec-head">
+      <h2>Parit</h2>
+      <p class="muted small">Odotettu pallo-% lasketaan pelaajien yksilöratingeista niitä vastustajia vastaan, joita pari on kohdannut. Taulukko on järjestetty erotuksen mukaan. Erotus vihjaa parikemiasta, mutta luotettavaan arvioon tarvitaan puolen vuoden data.</p>
+    </div>
+    <div class="panel scroll"><table id="pair-table"></table></div>
+  </section>
+
+  <section id="erat">
+    <div class="sec-head">
+      <h2>Erät ja ennusteet</h2>
+      <p class="muted small" id="calib"></p>
+    </div>
+    <div class="panel scroll"><table id="set-table"></table></div>
+  </section>
+
+  <section id="menetelma">
+    <div class="sec-head"><h2>Näin ranking lasketaan</h2></div>
+    <div class="method">
+      <p>Päämalli on TrueSkill Through Time pallotasolla. Erä 21–15 vastaa 21 palloa, jotka voittajapari voitti, ja 15 palloa, jotka se hävisi. Saman viikon pallot saavat saman aikaleiman, joten taito ei muutu kesken illan. Taidon muutosnopeus γ (per viikko) valitaan datasta: se arvo, jolla malli selittää havaitut tulokset parhaiten (log-evidenssi).</p>
+      <p>Pallon voittotodennäköisyys on Φ((Σμ<sub>A</sub> − Σμ<sub>B</sub>) / √(4β² + Σσ²)), β = 1. Erän voittotodennäköisyys lasketaan sulkapallon säännöillä: 21 pisteeseen, kahden pisteen ero, katto 30. Taitoarvioiden epävarmuus otetaan huomioon erätasolla: sama tuntematon taitoero pätee erän jokaiseen palloon, joten erän voittotodennäköisyys lasketaan keskiarvona kaikkien mahdollisten taitoerojen yli niiden todennäköisyyksillä painotettuna. Tasoitus on etumatka, jolla altavastaaja aloittaa (esim. 0–4), ja se valitaan niin, että erä on mahdollisimman lähellä 50–50.</p>
+      <p>Pallot eivät todellisuudessa ole toisistaan riippumattomia, joten σ on todellista epävarmuutta kapeampi. Järjestys ja erotukset ovat silti luotettavia. Tarkistuksena sama data sovitetaan binomi-logit-mallilla.</p>
+      <div class="grid2">
+        <div class="panel scroll"><h3>γ:n valinta</h3><table id="gamma-table"></table><p class="muted small" id="gamma-note"></p></div>
+        <div class="panel scroll"><h3>Kalman: taito ja jaksaminen</h3><table id="tau-table"></table><p class="muted small" id="tau-note"></p></div>
+        <div class="panel scroll"><h3>Vertailu: binomi-logit ja Kalman</h3><table id="logit-table"></table><p class="muted small" id="logit-note"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const D = __DATA__;
+
+const players = D.pelaajat;
+// Colors follow first appearance, so a new player never repaints the existing ones.
+const colorOrder = [...new Set(["Artturi", "Eero", "Ilkka", "Juha", "Jussi", "Sami", ...D.erat.flatMap(e => [...e.a, ...e.b])])];
+const colorOf = p => `var(--s${(colorOrder.indexOf(p) % 8) + 1})`;
+const dot = p => `<i class="dot" style="background:${colorOf(p)}"></i>`;
+const who = p => `<span class="who">${dot(p)}${esc(p)}</span>`;
+const pairHtml = pr => `<span class="pair">${pr.map(who).join("")}</span>`;
+const pct = (x, d = 0) => (x * 100).toFixed(d).replace(".", ",") + " %";
+const num = (x, d = 2) => (x < 0 ? "−" : "") + Math.abs(x).toFixed(d).replace(".", ",");
+const signed = (x, d = 2) => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toFixed(d).replace(".", ",");
+const fiDate = s => { const [y, m, d] = s.split("-"); return `${+d}.${+m}.${y}`; };
+const fiShort = s => { const [, m, d] = s.split("-"); return `${+d}.${+m}.`; };
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const store = {
+  get(k, f) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const weekLabel = w => { const wk = D.viikot.find(x => x.viikko === w); return wk ? fiShort(wk.pelipaivat[0]) : `vk ${w}`; };
+const latestWeek = D.viikot[D.viikot.length - 1].viikko;
+
+// ---------- header
+const Y = D.yhteenveto;
+document.getElementById("stats").innerHTML = [
+  [Y.viikkoja, Y.viikkoja === 1 ? "pelivuoro" : "pelivuoroa"],
+  [Y.erat, "erää"],
+  [Y.pallot, "palloa"],
+  [players.length, "pelaajaa"],
+].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("")
+  + `<div class="stat"><b>${fiShort(D.viikot[D.viikot.length - 1].pelipaivat.slice(-1)[0])}</b><span>viimeisin vuoro</span></div>`;
+
+// ---------- ranking
+(function () {
+  const R = D.ranking;
+  const lo = Math.min(...R.map(r => r.mu - 2 * r.sigma)), hi = Math.max(...R.map(r => r.mu + 2 * r.sigma));
+  const span = Math.max(Math.abs(lo), Math.abs(hi)) * 1.05;
+  const x = v => ((v + span) / (2 * span)) * 100;
+  const SP = '<td class="sp"></td>';
+  const rows = R.map((r, i) => {
+    const balls = r.pallot_v + r.pallot_h;
+    return `<tr><td class="rank">${i + 1}</td><td>${who(r.pelaaja)}</td>` + [
+      `<td class="r"><b>${signed(r.mu)}</b></td>`,
+      `<td class="cic"><div class="ci" title="95 %: ${num(r.mu - 2 * r.sigma)} … ${num(r.mu + 2 * r.sigma)}">
+        <span class="axis0" style="left:${x(0)}%"></span>
+        <span class="bar" style="left:${x(r.mu - 2 * r.sigma)}%;width:${x(r.mu + 2 * r.sigma) - x(r.mu - 2 * r.sigma)}%"></span>
+        <span class="pt" style="left:${x(r.mu)}%;background:${colorOf(r.pelaaja)}"></span></div></td>`,
+      `<td class="r muted">${num(r.konservatiivinen)}</td>`,
+      `<td class="r">${pct(r.pallo_ka, 1)}</td>`,
+      `<td class="r">${pct(r.era_ka)}</td>`,
+      `<td class="r"><span class="wl"><b>${r.voitot}</b>–${r.erat - r.voitot}</span></td>`,
+      `<td class="r">${pct(r.pallot_v / balls, 1)}</td>`,
+      `<td class="r muted">${r.pallot_v}–${r.pallot_h}</td>`,
+    ].map(c => SP + c).join("") + `</tr>`;
+  }).join("");
+  const SH = '<th class="sp"></th>';
+  document.getElementById("rank-table").innerHTML = `<thead><tr><th></th><th>Pelaaja</th>` + [
+    `<th class="r">Taito</th>`, `<th class="cic">Epävarmuus</th>`,
+    `<th class="r" title="Varovainen arvio: taito − 3 × keskihajonta">Taito vähintään</th>`,
+    `<th class="r" title="Ennustettu pallonvoitto: keskitasoisen parin kanssa keskitasoista paria vastaan">Ennuste pallo</th>`,
+    `<th class="r" title="Ennustettu erävoitto: keskitasoisen parin kanssa keskitasoista paria vastaan">Ennuste erä</th>`,
+    `<th class="r">Erät V–H</th>`, `<th class="r">Pallo-%</th>`, `<th class="r">Pallot</th>`,
+  ].map(c => SH + c).join("") + `</tr></thead><tbody>${rows}</tbody>`;
+})();
+
+// ---------- matchup lookup
+function matchup(a, b) {
+  a = [...a].sort(); b = [...b].sort();
+  const cmp = (x, y) => x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : x[1] < y[1] ? -1 : x[1] > y[1] ? 1 : 0;
+  const flip = cmp(a, b) > 0;
+  const [p, q] = flip ? [b, a] : [a, b];
+  const m = D.asetelmat[`${p.join(" & ")} | ${q.join(" & ")}`];
+  if (!m) return null;
+  if (!flip) return { ...m, under: m.tasoitukselle === "b" ? b : a };
+  return { pallo: 1 - m.pallo, era: 1 - m.era, tasoitus: m.tasoitus, era_tasoituksella: m.era_tasoituksella,
+           under: m.tasoitukselle === "b" ? b : a };
+}
+
+// ---------- predictor
+(function () {
+  const ids = ["a1", "a2", "b1", "b2"];
+  const sel = ids.map(id => document.getElementById(id));
+  const top = D.ranking.map(r => r.pelaaja);
+  const def = store.get("ennustin", [top[0], top[top.length - 1], top[1], top[top.length - 2]]);
+  sel.forEach((s, i) => {
+    s.innerHTML = players.map(p => `<option>${esc(p)}</option>`).join("");
+    s.value = players.includes(def[i]) ? def[i] : players[i % players.length];
+    s.addEventListener("change", draw);
+  });
+  function draw() {
+    const v = sel.map(s => s.value);
+    store.set("ennustin", v);
+    const el = document.getElementById("board");
+    if (new Set(v).size < 4) { el.innerHTML = `<p class="warn" style="margin-top:14px">Valitse neljä eri pelaajaa.</p>`; return; }
+    const A = [v[0], v[1]], B = [v[2], v[3]];
+    const m = matchup(A, B);
+    const fav = m.era >= 0.5 ? A : B;
+    const pA = fav === A ? m.era_tasoituksella : 1 - m.era_tasoituksella;
+    const hcScore = m.under === A ? m.tasoitus + "–0" : "0–" + m.tasoitus;
+    const meter = (label, p) => `<div class="full"><span class="lbl">${label}</span>
+        <div class="meter" aria-hidden="true"><i style="width:${p * 100}%;background:${colorOf(A[0])}"></i><i style="flex:1;background:${colorOf(B[0])}"></i></div>
+        <div class="odds"><span>${A.map(esc).join(" & ")} <b>${pct(p)}</b></span><span>${B.map(esc).join(" & ")} <b>${pct(1 - p)}</b></span></div></div>`;
+    el.innerHTML = `<div class="board">
+      <div class="full"><span class="lbl">Pallon voitto, pari 1</span><span class="big">${pct(m.pallo, 1)}</span></div>
+      ${meter("Erä ilman tasoitusta", m.era)}
+      ${meter(`Erä tasoituksella ${hcScore}`, pA)}
+    </div>`;
+  }
+  draw();
+})();
+
+// ---------- learning curves chart
+(function () {
+  const weeks = D.viikot.map(w => w.viikko);
+  let mode = store.get("kehitys-tila", "p");
+  let pairOf = store.get("kehitys-pari", D.ranking[0].pelaaja);
+  if (!players.includes(pairOf)) pairOf = players[0];
+  let hidden = new Set(), focus = null;
+
+  const pick = document.getElementById("pair-pick");
+  pick.innerHTML = players.map(p => `<option>${esc(p)}</option>`).join("");
+  pick.value = pairOf;
+  pick.addEventListener("change", () => { pairOf = pick.value; store.set("kehitys-pari", pairOf); hidden.clear(); focus = null; render(); });
+  const bP = document.getElementById("mode-p"), bR = document.getElementById("mode-pr");
+  bP.onclick = () => setMode("p"); bR.onclick = () => setMode("pr");
+  function setMode(m) { mode = m; store.set("kehitys-tila", m); hidden.clear(); focus = null; render(); }
+
+  function carried(p) {
+    // last known estimate at or before each week
+    const c = D.kayrat[p] || []; const out = {}; let j = -1;
+    for (const w of weeks) { while (j + 1 < c.length && c[j + 1].viikko <= w) j++; if (j >= 0) out[w] = c[j]; }
+    return out;
+  }
+  function series() {
+    if (mode === "p") {
+      return D.ranking.map(r => r.pelaaja).map(p => ({ key: p, label: p, color: colorOf(p),
+        pts: (D.kayrat[p] || []).map(k => ({ w: k.viikko, mu: k.mu, s: k.sigma })) }));
+    }
+    const me = carried(pairOf);
+    return players.filter(p => p !== pairOf).map(q => {
+      const other = carried(q);
+      const played = new Set(D.erat.filter(e => [e.a, e.b].some(t => t.includes(pairOf) && t.includes(q))).map(e => e.viikko));
+      const pts = weeks.filter(w => me[w] && other[w]).map(w => ({ w, mu: me[w].mu + other[w].mu,
+        s: Math.hypot(me[w].sigma, other[w].sigma), played: played.has(w) }));
+      return { key: q, label: `${pairOf} & ${q}`, color: colorOf(q), pts };
+    }).filter(s => s.pts.length);
+  }
+
+  function render() {
+    bP.setAttribute("aria-pressed", mode === "p"); bR.setAttribute("aria-pressed", mode === "pr");
+    document.getElementById("pair-pick-wrap").hidden = mode !== "pr";
+    const S = series();
+    const lg = document.getElementById("legend");
+    lg.innerHTML = S.map(s => `<button class="chip" data-k="${esc(s.key)}" aria-pressed="${!hidden.has(s.key)}">${`<i class="dot" style="background:${s.color}"></i>`}${esc(mode === "p" ? s.label : s.key)}</button>`).join("");
+    lg.onclick = ev => { const b = ev.target.closest(".chip"); if (!b) return; const k = b.dataset.k; hidden.has(k) ? hidden.delete(k) : hidden.add(k); render(); };
+    lg.onmouseover = ev => { const b = ev.target.closest(".chip"); if (b && !hidden.has(b.dataset.k)) { focus = b.dataset.k; draw(S); } };
+    lg.onmouseleave = () => { focus = null; draw(S); };
+    document.getElementById("chart-note").textContent = (weeks.length < 3
+      ? "Käyrät pitenevät viikko viikolta. Ensimmäisten vuorojen jälkeen niissä on vasta muutama piste. " : "")
+      + (mode === "pr" ? `Parin vahvuus on pelaajien μ:iden summa. Täytetyt pisteet: viikot, joina ${pairOf} ja pari pelasivat yhdessä.` : "")
+      + (D.gamma === 0 ? " Malli ei ole havainnut taidoissa muutosta viikosta toiseen (γ = 0), joten käyrien liike on arvion tarkentumista." : "");
+    draw(S);
+  }
+
+  function draw(S) {
+    const vis = S.filter(s => !hidden.has(s.key));
+    const el = document.getElementById("chart");
+    const W = 900, H = 340, m = { l: 48, r: 20, t: 16, b: 34 };
+    const all = vis.flatMap(s => s.pts);
+    if (!all.length) { el.innerHTML = `<p class="muted">Valitse vähintään yksi käyrä.</p>`; return; }
+    let y0 = Math.min(...all.map(p => p.mu - p.s)), y1 = Math.max(...all.map(p => p.mu + p.s));
+    const step = niceStep((y1 - y0) / 5); y0 = Math.floor(y0 / step) * step; y1 = Math.ceil(y1 / step) * step;
+    const wMin = weeks[0], wMax = weeks[weeks.length - 1];
+    const pad = wMax === wMin ? 0.5 : 0;
+    const X = w => m.l + ((w - wMin + pad) / ((wMax - wMin + 2 * pad) || 1)) * (W - m.l - m.r);
+    const Yp = v => m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b);
+    let g = "";
+    for (let v = y0; v <= y1 + 1e-9; v += step) {
+      g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Yp(v)}" y2="${Yp(v)}" stroke="var(${Math.abs(v) < 1e-9 ? "--line" : "--grid"})" stroke-width="1"/>`;
+      g += `<text x="${m.l - 8}" y="${Yp(v) + 4}" text-anchor="end">${signed(v, step < 0.1 ? 2 : 1)}</text>`;
+    }
+    const every = Math.ceil(weeks.length / 10);
+    weeks.forEach((w, i) => { if (i % every === 0) g += `<text x="${X(w)}" y="${H - 10}" text-anchor="middle">${weekLabel(w)}</text>`; });
+    const fs = focus && vis.find(s => s.key === focus);
+    if (fs) {
+      const up = fs.pts.map(p => `${X(p.w)},${Yp(p.mu + p.s)}`), dn = fs.pts.slice().reverse().map(p => `${X(p.w)},${Yp(p.mu - p.s)}`);
+      if (fs.pts.length > 1) g += `<polygon points="${up.concat(dn).join(" ")}" fill="${fs.color}" fill-opacity=".16" stroke="none"/>`;
+      else { const p = fs.pts[0]; g += `<line x1="${X(p.w)}" x2="${X(p.w)}" y1="${Yp(p.mu + p.s)}" y2="${Yp(p.mu - p.s)}" stroke="${fs.color}" stroke-width="10" stroke-opacity=".25" stroke-linecap="round"/>`; }
+    }
+    for (const s of vis) {
+      const op = focus && focus !== s.key ? 0.18 : 1;
+      if (s.pts.length > 1) g += `<polyline points="${s.pts.map(p => `${X(p.w)},${Yp(p.mu)}`).join(" ")}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" opacity="${op}"/>`;
+      for (const p of s.pts) {
+        const hollow = mode === "pr" && !p.played;
+        g += `<circle cx="${X(p.w)}" cy="${Yp(p.mu)}" r="5" fill="${hollow ? "var(--surface)" : s.color}" stroke="${hollow ? s.color : "var(--surface)"}" stroke-width="2" opacity="${op}"/>`;
+      }
+    }
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rankingin kehitys">${g}<line id="xh" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent"/></svg><div class="tip" hidden></div>`;
+    const svg = el.querySelector("svg"), tip = el.querySelector(".tip"), xh = el.querySelector("#xh");
+    svg.addEventListener("pointermove", ev => {
+      const r = svg.getBoundingClientRect(); const sx = (ev.clientX - r.left) * W / r.width;
+      let best = weeks[0]; for (const w of weeks) if (Math.abs(X(w) - sx) < Math.abs(X(best) - sx)) best = w;
+      const rows = vis.map(s => ({ s, p: s.pts.find(p => p.w === best) })).filter(o => o.p).sort((a, b) => b.p.mu - a.p.mu);
+      if (!rows.length) { tip.hidden = true; xh.setAttribute("visibility", "hidden"); return; }
+      xh.setAttribute("x1", X(best)); xh.setAttribute("x2", X(best)); xh.setAttribute("visibility", "visible");
+      tip.innerHTML = `<b>Data ${weekLabel(best)} asti</b>` + rows.map(o => `<div class="row"><span><i class="dot" style="background:${o.s.color}"></i>${esc(mode === "p" ? o.s.label : o.s.key)}</span><span class="num">${signed(o.p.mu)} ± ${num(o.p.s)}</span></div>`).join("");
+      tip.hidden = false;
+      const px = X(best) * r.width / W;
+      tip.style.left = Math.min(Math.max(px + 12, 0), r.width - tip.offsetWidth) + "px";
+      tip.style.top = "8px";
+      if (px + 12 + tip.offsetWidth > r.width) tip.style.left = Math.max(px - 12 - tip.offsetWidth, 0) + "px";
+    });
+    svg.addEventListener("pointerleave", () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); });
+  }
+  function niceStep(x) { const e = Math.pow(10, Math.floor(Math.log10(x))); const f = x / e; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * e; }
+  render();
+})();
+
+// ---------- generic line chart with legend, focus band and crosshair tooltip
+function lineChart(opts) {
+  // opts: chartEl, legendEl, series [{key, color, note, pts:[{x, v, s}]}], xs, xLabel(x), xTitle, tipTitle(x), fmt(v), bandK
+  let hidden = new Set(), focus = null;
+  const { chartEl, legendEl } = opts;
+  function legend() {
+    legendEl.innerHTML = opts.series.map(s => `<button class="chip" data-k="${esc(s.key)}" aria-pressed="${!hidden.has(s.key)}"><i class="dot" style="background:${s.color}"></i>${esc(s.key)}${s.note ? ` <span class="muted num">${s.note}</span>` : ""}</button>`).join("");
+  }
+  legendEl.onclick = ev => { const b = ev.target.closest(".chip"); if (!b) return; const k = b.dataset.k; hidden.has(k) ? hidden.delete(k) : hidden.add(k); legend(); draw(); };
+  legendEl.onmouseover = ev => { const b = ev.target.closest(".chip"); if (b && !hidden.has(b.dataset.k)) { focus = b.dataset.k; draw(); } };
+  legendEl.onmouseleave = () => { focus = null; draw(); };
+  function draw() {
+    const vis = opts.series.filter(s => !hidden.has(s.key));
+    if (!vis.length) { chartEl.innerHTML = `<p class="muted">Valitse vähintään yksi käyrä.</p>`; return; }
+    const k = opts.bandK || 1;
+    const W = 900, H = 320, m = { l: 52, r: 20, t: 16, b: opts.xTitle ? 40 : 30 };
+    const fs = focus && vis.find(s => s.key === focus);
+    const vals = vis.flatMap(s => s.pts.map(p => p.v)).concat(fs ? fs.pts.flatMap(p => [p.v - k * p.s, p.v + k * p.s]) : [], [0]);
+    let y0 = Math.min(...vals), y1 = Math.max(...vals);
+    if (y1 - y0 < 1) { y0 -= 0.5; y1 += 0.5; }
+    const step = niceStep((y1 - y0) / 5); y0 = Math.floor(y0 / step) * step; y1 = Math.ceil(y1 / step) * step;
+    const xs = opts.xs, pad = xs.length === 1 ? 0.5 : 0;
+    const xi = x => xs.indexOf(x);
+    const X = x => m.l + ((xi(x) + pad) / ((xs.length - 1 + 2 * pad) || 1)) * (W - m.l - m.r);
+    const Yp = v => m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b);
+    let g = "";
+    for (let v = y0; v <= y1 + 1e-9; v += step) {
+      g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Yp(v)}" y2="${Yp(v)}" stroke="var(${Math.abs(v) < 1e-9 ? "--line" : "--grid"})"/>`;
+      g += `<text x="${m.l - 8}" y="${Yp(v) + 4}" text-anchor="end">${signed(v, step < 1 ? 1 : 0)}</text>`;
+    }
+    const every = Math.ceil(xs.length / 12);
+    xs.forEach((x, i) => { if (i % every === 0) g += `<text x="${X(x)}" y="${H - (opts.xTitle ? 18 : 8)}" text-anchor="middle">${opts.xLabel(x)}</text>`; });
+    if (opts.xTitle) g += `<text x="${(m.l + W - m.r) / 2}" y="${H - 2}" text-anchor="middle">${opts.xTitle}</text>`;
+    if (fs) {
+      if (fs.pts.length > 1) {
+        const up = fs.pts.map(p => `${X(p.x)},${Yp(p.v + k * p.s)}`), dn = fs.pts.slice().reverse().map(p => `${X(p.x)},${Yp(p.v - k * p.s)}`);
+        g += `<polygon points="${up.concat(dn).join(" ")}" fill="${fs.color}" fill-opacity=".16"/>`;
+      } else { const p = fs.pts[0]; g += `<line x1="${X(p.x)}" x2="${X(p.x)}" y1="${Yp(p.v + k * p.s)}" y2="${Yp(p.v - k * p.s)}" stroke="${fs.color}" stroke-width="10" stroke-opacity=".25" stroke-linecap="round"/>`; }
+    }
+    for (const s of vis) {
+      const op = focus && focus !== s.key ? 0.18 : 1;
+      if (s.pts.length > 1) g += `<polyline points="${s.pts.map(p => `${X(p.x)},${Yp(p.v)}`).join(" ")}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" opacity="${op}"/>`;
+      const marks = opts.allMarkers ? s.pts : s.pts.slice(-1);
+      for (const p of marks) g += `<circle cx="${X(p.x)}" cy="${Yp(p.v)}" r="4.5" fill="${s.color}" stroke="var(--surface)" stroke-width="2" opacity="${op}"/>`;
+    }
+    chartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || "")}">${g}<line class="xh" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink-3)" stroke-dasharray="3 3" visibility="hidden"/><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent"/></svg><div class="tip" hidden></div>`;
+    const svg = chartEl.querySelector("svg"), tip = chartEl.querySelector(".tip"), xh = chartEl.querySelector(".xh");
+    svg.addEventListener("pointermove", ev => {
+      const r = svg.getBoundingClientRect(); const sx = (ev.clientX - r.left) * W / r.width;
+      let best = xs[0]; for (const x of xs) if (Math.abs(X(x) - sx) < Math.abs(X(best) - sx)) best = x;
+      const rows = vis.map(s => ({ s, p: s.pts.find(p => p.x === best) })).filter(o => o.p).sort((a, b) => b.p.v - a.p.v);
+      if (!rows.length) { tip.hidden = true; xh.setAttribute("visibility", "hidden"); return; }
+      xh.setAttribute("x1", X(best)); xh.setAttribute("x2", X(best)); xh.setAttribute("visibility", "visible");
+      tip.innerHTML = `<b>${opts.tipTitle(best)}</b>` + rows.map(o => `<div class="row"><span><i class="dot" style="background:${o.s.color}"></i>${esc(o.s.key)}</span><span class="num">${opts.fmt(o.p)}</span></div>`).join("");
+      tip.hidden = false;
+      const px = X(best) * r.width / W;
+      tip.style.top = "8px";
+      tip.style.left = (px + 12 + tip.offsetWidth > r.width ? Math.max(px - 12 - tip.offsetWidth, 0) : px + 12) + "px";
+    });
+    svg.addEventListener("pointerleave", () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); });
+  }
+  legend(); draw();
+}
+function niceStep(x) { const e = Math.pow(10, Math.floor(Math.log10(x))); const f = x / e; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * e; }
+
+// ---------- fatigue
+(function () {
+  const K = D.kalman;
+  const PP = K.pp_per_yksikko;   // TTT-asteikon yksikkö → prosenttiyksikköä pallon voittotodennäköisyydessä (kohdassa 50 %)
+  const ppe = (v, d = 1) => `${signed(v, d)} pp/erä`;
+  const last = (model, p) => K[model][p][K[model][p].length - 1];
+  const J = {
+    max_x: K.max_x, havainnot: K.havainnot,
+    kutistamaton: players.map(p => ({ pelaaja: p, muutos: last("kutistamaton", p).jaksaminen, muutos_sd: last("kutistamaton", p).jaksaminen_sd }))
+      .sort((a, b) => b.muutos - a.muutos),
+  };
+  document.getElementById("fat-tau-note").textContent = K.tau === Math.min(...K.tau_haku.map(t => t.tau))
+    ? "Toistaiseksi data ei riitä erottamaan pelaajia kohinasta, joten kutistettu malli antaa kaikille nollan."
+    : "Data riittää erottamaan pelaajat toisistaan myös kutistetussa mallissa.";
+
+  // Forest plot of unshrunk per-player slopes
+  (function () {
+    const F = J.kutistamaton;
+    const rowH = 38, W = 900, lw = 120, rw = 190, top = 10, H = top + F.length * rowH + 30;
+    const ends = F.flatMap(d => [(d.muutos - 1.96 * d.muutos_sd) * PP, (d.muutos + 1.96 * d.muutos_sd) * PP]).concat([0]);
+    let x0 = Math.min(...ends), x1 = Math.max(...ends);
+    const step = niceStep((x1 - x0) / 6); x0 = Math.floor(x0 / step) * step; x1 = Math.ceil(x1 / step) * step;
+    const X = v => lw + (v - x0) / (x1 - x0) * (W - lw - rw);
+    let g = "";
+    for (let v = x0; v <= x1 + 1e-9; v += step) {
+      g += `<line x1="${X(v)}" x2="${X(v)}" y1="${top}" y2="${H - 26}" stroke="var(${Math.abs(v) < 1e-9 ? "--ink-3" : "--grid"})"/>`;
+      g += `<text x="${X(v)}" y="${H - 8}" text-anchor="middle">${signed(v, 0)}</text>`;
+    }
+    F.forEach((d, i) => {
+      const y = top + i * rowH + rowH / 2, c = colorOf(d.pelaaja);
+      const a = (d.muutos - 1.96 * d.muutos_sd) * PP, b = (d.muutos + 1.96 * d.muutos_sd) * PP;
+      g += `<text x="0" y="${y + 5}" style="fill:var(--ink);font-weight:600;font-size:15px">${esc(d.pelaaja)}</text>`;
+      g += `<line x1="${X(a)}" x2="${X(b)}" y1="${y}" y2="${y}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/>`;
+      g += `<circle cx="${X(d.muutos * PP)}" cy="${y}" r="6" fill="${c}" stroke="var(--surface)" stroke-width="2"><title>${esc(d.pelaaja)}: ${ppe(d.muutos * PP)} (95 %: ${signed(a, 1)} … ${signed(b, 1)})</title></circle>`;
+      g += `<text x="${W}" y="${y + 5}" text-anchor="end" style="fill:var(--ink);font-size:14px">${ppe(d.muutos * PP)} <tspan style="fill:var(--ink-3)">± ${num(1.96 * d.muutos_sd * PP, 1)}</tspan></text>`;
+    });
+    document.getElementById("fat-forest").innerHTML = `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" style="min-width:560px" role="img" aria-label="Pelaajakohtainen jaksaminen">${g}</svg></div>`;
+  })();
+
+  // Evolution of the unshrunk estimates week by week (Kalman smoother)
+  lineChart({
+    chartEl: document.getElementById("fat-hist"), legendEl: document.getElementById("fat-hist-legend"),
+    label: "Jaksamisarvion kehitys", xs: D.viikot.map(w => w.viikko), xLabel: weekLabel, tipTitle: w => `Data ${weekLabel(w)} asti`,
+    bandK: 1.96, allMarkers: true,
+    fmt: p => `${ppe(p.v)} ± ${num(1.96 * p.s, 1)}`,
+    series: J.kutistamaton.map(d => d.pelaaja).map(p => ({ key: p, color: colorOf(p),
+      pts: K.kutistamaton_ajantasa[p].map(r => ({ x: r.viikko, v: r.jaksaminen * PP, s: r.jaksaminen_sd * PP })) })),
+  });
+
+  // Performance over the night: own (unshrunk) or pooled model, latest week
+  const xsN = Array.from({ length: J.max_x }, (_, i) => i + 1);
+  function nightChart(which) {
+    const model = which === "own" ? "kutistamaton" : "kutistettu";
+    lineChart({
+      chartEl: document.getElementById("fat-chart"), legendEl: document.getElementById("fat-legend"),
+      label: "Pärjääminen illan kulussa", xs: xsN, xLabel: x => `${x}.`, xTitle: "illan erä", tipTitle: x => `Illan ${x}. erä`,
+      fmt: p => `${signed(p.v, 1)} pp`,
+      series: J.kutistamaton.map(d => d.pelaaja).map(p => {
+        const r = last(model, p), c = K.c[p];
+        return { key: p, color: colorOf(p), note: ppe(r.jaksaminen * PP),
+          pts: Array.from({ length: K.max_erat[p] }, (_, x) => ({ x: x + 1, v: (r.taito + r.jaksaminen * (x - c)) * PP,
+            s: Math.hypot(r.taito_sd, (x - c) * r.jaksaminen_sd) * PP })) };
+      }),
+    });
+    document.getElementById("fat-m-own").setAttribute("aria-pressed", which === "own");
+    document.getElementById("fat-m-pool").setAttribute("aria-pressed", which !== "own");
+    store.set("jaksaminen-tila", which);
+  }
+  document.getElementById("fat-m-own").onclick = () => nightChart("own");
+  document.getElementById("fat-m-pool").onclick = () => nightChart("pool");
+  nightChart(store.get("jaksaminen-tila", "own") === "pool" ? "pool" : "own");
+
+  // Small multiples of residuals
+  const allRes = Object.values(J.havainnot).flat().map(h => Math.abs(h.ero * 100));
+  const lim = Math.max(5, Math.ceil(Math.max(...allRes) / 5) * 5);
+  const W = 300, H = 150, m = { l: 34, r: 8, t: 10, b: 22 };
+  const X = x => m.l + (x / Math.max(J.max_x - 1, 1)) * (W - m.l - m.r);
+  const Yp = v => m.t + (1 - (v + lim) / (2 * lim)) * (H - m.t - m.b);
+  document.getElementById("fat-multiples").innerHTML = D.ranking.map(r => r.pelaaja).map(p => {
+    const hs = J.havainnot[p] || [];
+    let g = "";
+    for (const v of [-lim, 0, lim]) {
+      g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Yp(v)}" y2="${Yp(v)}" stroke="var(${v === 0 ? "--line" : "--grid"})"/>`;
+      g += `<text x="${m.l - 6}" y="${Yp(v) + 4}" text-anchor="end">${signed(v, 0)}</text>`;
+    }
+    for (let x = 0; x < J.max_x; x += J.max_x > 8 ? 2 : 1) g += `<text x="${X(x)}" y="${H - 6}" text-anchor="middle">${x + 1}.</text>`;
+    for (const h of hs) g += `<circle cx="${X(h.x)}" cy="${Yp(h.ero * 100)}" r="4.5" fill="${colorOf(p)}" stroke="var(--surface)" stroke-width="2"><title>${h.x + 1}. erä: ${signed(h.ero * 100, 1)} pp</title></circle>`;
+    return `<div class="mult"><div class="who">${dot(p)}${esc(p)}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p)}: toteutunut miinus ennuste erittäin">${g}</svg></div>`;
+  }).join("");
+})();
+
+// ---------- pairs table
+document.getElementById("pair-table").innerHTML = `<thead><tr><th>Pari</th><th class="r">Erät V–H</th><th class="r">Pallot</th><th class="r">Pallo-%</th><th class="r">Odotettu</th><th class="r">Ero</th></tr></thead><tbody>`
+  + D.parit.slice().sort((x, y) => (y.pallo_osuus - y.odotettu_osuus) - (x.pallo_osuus - x.odotettu_osuus)).map(d => {
+    const diff = (d.pallo_osuus - d.odotettu_osuus) * 100;
+    return `<tr><td>${pairHtml(d.pari)}</td><td class="r"><span class="wl"><b>${d.voitot}</b>–${d.erat - d.voitot}</span></td>
+      <td class="r muted">${d.pallot_v}–${d.pallot_h}</td><td class="r">${pct(d.pallo_osuus, 1)}</td><td class="r muted">${pct(d.odotettu_osuus, 1)}</td>
+      <td class="r ${diff > 0.5 ? "up" : diff < -0.5 ? "down" : "muted"}">${signed(diff, 1)} pp</td></tr>`;
+  }).join("") + `</tbody>`;
+
+// ---------- sets & predictions
+(function () {
+  const withPrior = D.erat.filter(e => e.viikko > D.viikot[0].viikko);
+  const calib = document.getElementById("calib");
+  const base = "Ennuste ennen vuoroa käyttää vain aiempien viikkojen tuloksia: se on se, mitä ranking olisi ennustanut. Jälkikäteen-arvio käyttää koko dataa. ";
+  if (withPrior.length) {
+    const brier = withPrior.reduce((s, e) => s + (1 - e.ennuste.era) ** 2, 0) / withPrior.length;
+    const hits = withPrior.filter(e => e.ennuste.era > 0.5).length, ties = withPrior.filter(e => e.ennuste.era === 0.5).length;
+    calib.textContent = base + `Ennen vuoroa tehdyistä ennusteista suosikki voitti ${hits}/${withPrior.length - ties} erää. Brier-pistemäärä ${num(brier, 3)} (kolikonheitto 0,250; pienempi on parempi).`;
+  } else {
+    calib.textContent = base + "Ensimmäisellä vuorolla kaikki lähtivät samalta viivalta, joten ennuste oli 50 %. Ennusteiden osumatarkkuus näkyy tässä toisesta vuorosta alkaen.";
+  }
+  const byWeek = {};
+  D.erat.forEach(e => (byWeek[e.viikko] ||= []).push(e));
+  let html = `<thead><tr><th>Klo</th><th>Voittajat</th><th class="r">Tulos</th><th>Häviäjät</th><th class="r" title="Voittajien erävoiton todennäköisyys ennen vuoroa">Ennuste</th><th class="r" title="Voittajien erävoiton todennäköisyys koko datalla">Jälkikäteen</th><th class="r">Tasoitus olisi ollut</th></tr></thead><tbody>`;
+  for (const w of Object.keys(byWeek).map(Number).sort((a, b) => b - a)) {
+    const wk = D.viikot.find(x => x.viikko === w);
+    html += `<tr class="week-h"><td colspan="7">${wk.pelipaivat.map(fiDate).join(", ")}</td></tr>`;
+    for (const e of byWeek[w].slice().reverse()) {
+      const pe = e.ennuste.era, pj = e.jalkikateen.era;
+      const cls = pe > 0.5 ? "hit" : pe < 0.5 ? "miss" : "";
+      const t = e.jalkikateen;
+      const under = t.tasoitukselle === "a" ? e.a : e.b;
+      html += `<tr><td class="muted num">${e.klo}</td><td>${pairHtml(e.a)}</td><td class="r res num">${e.pa}–${e.pb}</td><td>${pairHtml(e.b)}</td>
+        <td class="r"><span class="pill ${cls}">${pct(pe)}</span></td><td class="r muted">${pct(pj)}</td>
+        <td class="r muted small">${t.tasoitus ? `${under.join(" & ")} +${t.tasoitus}` : "–"}</td></tr>`;
+    }
+  }
+  document.getElementById("set-table").innerHTML = html + "</tbody>";
+})();
+
+// ---------- method tables
+(function () {
+  const best = Math.max(...D.evidenssit.map(e => e.log_evidenssi));
+  document.getElementById("gamma-table").innerHTML = `<thead><tr><th><span class="gr">γ</span> / viikko</th><th class="r">Log-evidenssi</th><th class="r">Ero parhaaseen</th></tr></thead><tbody>`
+    + D.evidenssit.map(e => `<tr${e.gamma === D.gamma ? ' style="font-weight:700"' : ""}><td>${num(e.gamma, 3)}${e.gamma === D.gamma ? " ✓" : ""}</td><td class="r">${num(e.log_evidenssi, 1)}</td><td class="r muted">${num(e.log_evidenssi - best, 2)}</td></tr>`).join("") + "</tbody>";
+  const same = D.evidenssit.every(e => Math.abs(e.log_evidenssi - best) < 1e-6);
+  document.getElementById("gamma-note").textContent = same
+    ? "Kaikki arvot selittävät datan yhtä hyvin, koska dataa on vasta yhdeltä viikolta. Silloin valitaan γ = 0. Valinta muuttuu merkitykselliseksi, kun viikkoja kertyy."
+    : (D.gamma === 0 ? "Paras γ on 0: taidot eivät ole mitattavasti muuttuneet." : `Valittu γ = ${num(D.gamma, 3)}: taidot muuttuvat mitattavasti viikosta toiseen.`);
+  const L = D.logit;
+  document.getElementById("logit-table").innerHTML = `<thead><tr><th>Pelaaja</th><th class="r"><span class="gr">θ</span> (logit)</th><th class="r">SE</th><th class="r">TTT-taito</th><th class="r">Kalman-taito</th></tr></thead><tbody>`
+    + D.ranking.map(r => { const kk = D.kalman.kutistettu[r.pelaaja]; const k = kk[kk.length - 1];
+      return `<tr><td>${who(r.pelaaja)}</td><td class="r">${signed(r.theta, 3)}</td><td class="r muted">${num(r.theta_se, 3)}</td><td class="r muted">${signed(r.mu)}</td><td class="r muted" title="± ${num(k.taito_sd)}">${signed(k.taito)}</td></tr>`; }).join("") + "</tbody>";
+  document.getElementById("logit-note").textContent =
+    `Staattinen suurimman uskottavuuden malli, θ:iden summa nolla. Ylihajonta Pearson χ²/df = ${num(L.hajonta, 2)} (df ${L.df}). `
+    + (L.quasi ? "Selvästi yli 1, joten keskivirheet ovat quasi-binomi-korjattuja: pallot riippuvat toisistaan. " : "Lähellä tai alle 1, joten pallojen riippumattomuusoletus näyttää toimivan. ")
+    + `Odotettu tarkkuus ${L.pallot} pallolla on noin ${num(L.se_odotettu, 3)} logit-yksikköä eli noin ${num(L.se_odotettu * 25, 1)} prosenttiyksikköä pallon voittotodennäköisyydessä.`;
+})();
+
+(function () {
+  const K = D.kalman;
+  const best = Math.max(...K.haku.map(e => e.log_evidenssi));
+  const top = K.haku.slice().sort((a, b) => b.log_evidenssi - a.log_evidenssi).slice(0, 5);
+  const tbest = Math.max(...K.tau_haku.map(e => e.log_evidenssi));
+  document.getElementById("tau-table").innerHTML = `<thead><tr><th><span class="gr">γ</span> taito</th><th><span class="gr">η</span> jaksaminen</th><th class="r">Log-evidenssi</th><th class="r">Ero</th></tr></thead><tbody>`
+    + top.map(e => { const sel = e.gamma === K.gamma && e.eta === K.eta; return `<tr${sel ? ' style="font-weight:700"' : ""}><td>${num(e.gamma, 3)}${sel ? " ✓" : ""}</td><td>${num(e.eta, 3)}</td><td class="r">${num(e.log_evidenssi, 1)}</td><td class="r muted">${num(e.log_evidenssi - best, 2)}</td></tr>`; }).join("")
+    + `</tbody><tbody><tr><th><span class="gr">τ</span> kutistus</th><th></th><th class="r">Log-evidenssi</th><th class="r">Ero</th></tr>`
+    + K.tau_haku.map(e => `<tr${e.tau === K.tau ? ' style="font-weight:700"' : ""}><td>${num(e.tau, 2)}${e.tau === K.tau ? " ✓" : ""}</td><td></td><td class="r">${num(e.log_evidenssi, 1)}</td><td class="r muted">${num(e.log_evidenssi - tbest, 2)}</td></tr>`).join("") + "</tbody>";
+  document.getElementById("tau-note").textContent = "Kalman-suodatin ja -tasoitin. Jokaisella pelaajalla on kaksi piilotilaa: taito ja jaksamiskerroin. Erän havainto on pallo-osuus TrueSkillin asteikolle muunnettuna (2β Φ⁻¹(osuus)), ja se selitetään molempien parien taidoilla sekä jaksamiskertoimilla kerrottuna sillä, montako erää pelaaja on jo pelannut iltana (keskitettynä pelaajan omaan keskiarvoon). Illan sisällä tilat eivät muutu; viikkojen välillä taito muuttuu nopeudella γ ja jaksamiskerroin nopeudella η. Kaikille yhteinen jaksaminen on mukana taustamuuttujana. Kutistetussa mallissa jaksamiskertoimien priorihajonta τ valitaan log-evidenssillä; kutistamattomassa se on 0,5 eli käytännössä vapaa. Taulukossa γ:n ja η:n viisi parasta yhdistelmää.";
+})();
+
+document.getElementById("foot").textContent = `Päivitetty ${D.luotu.replace(/^(\d+)-(\d+)-(\d+)/, (_, y, m, d) => `${+d}.${+m}.${y}`)}. Malli: TrueSkill Through Time (β = ${D.beta}, alkuepävarmuus σ = ${D.sigma0}), γ = ${num(D.gamma, 3)} / viikko.`;
+</script>
