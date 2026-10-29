@@ -23,15 +23,15 @@ jobs:
       name: github-pages
       url: ${{ steps.julkaisu.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
       - run: pip install -r requirements.txt
 
       # TTT-sovitusten välimuisti ajojen välillä
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: tulokset/.valimuisti.json
           key: valimuisti-${{ github.run_id }}
@@ -42,6 +42,6 @@ jobs:
           DATA_URL: ${{ secrets.DATA_URL }}
 
       - run: mkdir _site && cp tulokset/sulkapalloranking.html _site/index.html
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
       - id: julkaisu
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
